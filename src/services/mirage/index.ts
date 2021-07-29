@@ -1,4 +1,5 @@
-import { createServer, Model } from "miragejs";
+import { createServer, Model, Factory } from "miragejs";
+import faker from "faker";
 
 type User = {
   name: string;
@@ -10,7 +11,29 @@ export function makeServer() {
   const server = createServer({
     // quais dados eu quero armazenar no bd fictício que o mirage cria
     models: {
-      user: Model.extend<Partial<User>>({}), // pode não conter todos os dados do type
+      user: Model.extend<Partial<User>>({}), // pode não conter todos os dados do type User
+    },
+
+    // cria dados em massa
+    factories: {
+      // nome do model que eu quero criar a factory
+      user: Factory.extend({
+        name(i: number) {
+          return `User ${i + 1}`;
+        },
+        email() {
+          return faker.internet.email().toLowerCase();
+        },
+        createdAt() {
+          return faker.date.recent(10);
+        },
+      }),
+    },
+
+    // gera dados quando inicializamos o servidor do mirage
+    seeds(server) {
+      // nome da factory, quantidade
+      server.createList("user", 10);
     },
 
     routes() {
