@@ -17,39 +17,14 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import { RiAddLine } from "react-icons/ri";
-import { useQuery } from "react-query";
 
 import { Header } from "../../components/Header";
 import { Pagination } from "../../components/Pagination";
 import { Sidebar } from "../../components/Sidebar";
+import { useUsers } from "../../services/hooks/useUsers";
 
 export default function UsersList() {
-  // chave em que os dados vão ser guardados em cache
-  const { data, isLoading, error } = useQuery(
-    "users",
-    async () => {
-      const res = await fetch("http://localhost:3000/api/users");
-      const data = await res.json();
-
-      const users = data.users.map((user) => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        createdAt: new Date(user.createdAt).toLocaleDateString("pt-BR", {
-          day: "2-digit",
-          month: "long",
-          year: "numeric",
-        }),
-      }));
-
-      return users;
-    },
-    {
-      // por quanto tempos os dados vão ser fresh (não obsoletos)
-      // enquanto eles forem fresh, não é preciso fazer requisições, só quando forem stale (obsoletos)
-      staleTime: 1000 * 5, // 5 seconds
-    }
-  );
+  const { data, isLoading, isFetching, error } = useUsers();
 
   const isWideVersion = useBreakpointValue({
     base: false,
@@ -67,6 +42,10 @@ export default function UsersList() {
           <Flex mb="8" justify="space-between" align="center">
             <Heading size="lg" fontWeight="normal">
               Usuários
+              {/* O loading não deve ser o inicial, mas sim, de refetch */}
+              {!isLoading && isFetching && (
+                <Spinner size="sm" color="gray.500" ml="4" />
+              )}
             </Heading>
             <Link href="/users/create" passHref>
               <Button
@@ -118,7 +97,11 @@ export default function UsersList() {
                   ))}
                 </Tbody>
               </Table>
-              <Pagination />
+              <Pagination
+                totalCountOfRegisters={200}
+                currentPage={5}
+                onPageChange={() => {}}
+              />
             </>
           )}
         </Box>

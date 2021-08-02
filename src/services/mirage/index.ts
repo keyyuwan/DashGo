@@ -1,4 +1,4 @@
-import { createServer, Model, Factory } from "miragejs";
+import { createServer, Model, Factory, Response } from "miragejs";
 import faker from "faker";
 
 type User = {
@@ -33,7 +33,7 @@ export function makeServer() {
     // gera dados quando inicializamos o servidor do mirage
     seeds(server) {
       // nome da factory, quantidade
-      server.createList("user", 10);
+      server.createList("user", 200);
     },
 
     routes() {
@@ -41,7 +41,26 @@ export function makeServer() {
       this.timing = 750; // toda chamada pra API vai demorar 750ms
 
       // shorthand
-      this.get("/users");
+      this.get("/users", function (schema, request) {
+        const { page = 1, per_page = 10 } = request.queryParams;
+
+        const total = schema.all("user").length;
+
+        const pageStart = (Number(page) - 1) * Number(per_page);
+        const pageEnd = pageStart + Number(per_page);
+
+        const users = this.serialize(schema.all("user")).users.slice(
+          pageStart,
+          pageEnd
+        );
+
+        // retornando uma resposta com headers
+        return new Response(
+          200, // status code de sucesso
+          { "x-total-count": String(total) }, // headers
+          { users }
+        );
+      });
       this.post("/users");
 
       this.namespace = ""; // volto o namespace pra não prejudicar as rotas api (API routes) do Next
