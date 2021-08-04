@@ -1,4 +1,4 @@
-import { useQuery } from "react-query";
+import { useQuery, UseQueryOptions, UseQueryResult } from "react-query";
 import { api } from "../../services/api";
 
 type User = {
@@ -8,8 +8,19 @@ type User = {
   createdAt: string;
 };
 
-export async function getUsers(): Promise<User[]> {
-  const { data } = await api.get("users");
+type GetUsersResponse = {
+  users: User[];
+  totalCount: number;
+};
+
+export async function getUsers(page: number): Promise<GetUsersResponse> {
+  const { data, headers } = await api.get("users", {
+    params: {
+      page,
+    },
+  });
+
+  const totalCount = Number(headers["x-total-count"]);
 
   const users = data.users.map((user) => ({
     id: user.id,
@@ -22,14 +33,15 @@ export async function getUsers(): Promise<User[]> {
     }),
   }));
 
-  return users;
+  return { users, totalCount };
 }
 
-export function useUsers() {
+export function useUsers(page: number, options?: UseQueryOptions) {
   // chave em que os dados vão ser guardados em cache
-  return useQuery("users", getUsers, {
+  return useQuery(["users", page], () => getUsers(page), {
     // por quanto tempos os dados vão ser fresh (não obsoletos)
     // enquanto eles forem fresh, não é preciso fazer requisições, só quando forem stale (obsoletos)
-    staleTime: 1000 * 5, // 5 seconds
-  });
+    staleTime: 1000 * 60 * 10, // 10 minutes
+    ...options,
+  }) as UseQueryResult<GetUsersResponse, unknown>;
 }

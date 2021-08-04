@@ -1,4 +1,10 @@
-import { createServer, Model, Factory, Response } from "miragejs";
+import {
+  createServer,
+  Model,
+  Factory,
+  Response,
+  ActiveModelSerializer,
+} from "miragejs";
 import faker from "faker";
 
 type User = {
@@ -9,6 +15,10 @@ type User = {
 
 export function makeServer() {
   const server = createServer({
+    serializers: {
+      application: ActiveModelSerializer,
+    },
+
     // quais dados eu quero armazenar no bd fictício que o mirage cria
     models: {
       user: Model.extend<Partial<User>>({}), // pode não conter todos os dados do type User
@@ -61,6 +71,7 @@ export function makeServer() {
           { users }
         );
       });
+      this.get("/users/:id");
       this.post("/users");
 
       this.namespace = ""; // volto o namespace pra não prejudicar as rotas api (API routes) do Next
