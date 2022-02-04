@@ -6,8 +6,8 @@ Interface de um painel administrativo, com fluxo de autenticação, dashboard, l
 
 # 📸 Overview
 
-![Dashboard page](./.github/dashboard.png)
-![Users list / User creation](./.github/users.gif)
+![Dashboard page](./dashboard.png)
+![Users list / User creation](./users.gif)
 
 <br />
 
